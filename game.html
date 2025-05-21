@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Saper Game</title>
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Saper Game" />
+    <meta property="og:description" content="Play Minesweeper. Avoid bombs, beat the timer." />
+    <meta property="og:image" content="https://saper-xi.vercel.app/image.png" />
+    <meta property="og:url" content="https://saper-xi.vercel.app/game.html" />
+
+    <!-- Warpcast SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@farcaster/frame-sdk/dist/index.min.js"></script>
+    <script>
+      frame.sdk.actions.ready();
+    </script>
+
+    <style>
+      body {
+        margin: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #1e90ff, #8a2be2);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 100vh;
+        padding: 40px 16px 20px;
+        color: #fff;
+        position: relative;
+      }
+
+      h1 {
+        font-size: 2rem;
+        margin-bottom: 16px;
+        text-align: center;
+      }
+
+      .stats {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        font-size: 1rem;
+        margin-bottom: 20px;
+        justify-content: center;
+        text-align: center;
+      }
+
+      #minesweeper {
+        display: grid;
+        grid-template-columns: repeat(10, 1fr);
+        gap: 4px;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 16px;
+        border-radius: 16px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+        width: 100%;
+        max-width: 420px;
+      }
+
+      .cell {
+        aspect-ratio: 1 / 1;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        color: #fff;
+        user-select: none;
+        transition: background 0.2s;
+      }
+
+      .cell.reveal {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .cell.bomb {
+        background-image: url("bomb.png");
+        background-size: cover;
+        background-position: center;
+      }
+
+      .cell.flag {
+        background-image: url("mark.png");
+        background-size: 24px 24px;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+
+      .sound-toggle {
+        position: absolute;
+        top: 12px;
+        right: 16px;
+        width: 32px;
+        height: 32px;
+        background-image: url("sound-on.png");
+        background-size: contain;
+        background-repeat: no-repeat;
+        cursor: pointer;
+        z-index: 100;
+      }
+
+      .sound-toggle.muted {
+        background-image: url("sound-off.png");
+      }
+
+      @media (max-width: 480px) {
+        #minesweeper {
+          grid-template-columns: repeat(10, 1fr);
+          max-width: 100%;
+          padding: 12px;
+        }
+
+        .cell {
+          font-size: 0.9rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sound-toggle" id="soundToggle"></div>
+    <h1>Minesweeper</h1>
+    <div class="stats">
+      <div>⏱️ Time: <span id="timer">0s</span></div>
+      <div>💣 Mines Left: <span id="mines-left">10</span></div>
+    </div>
+    <div id="minesweeper"></div>
+
+    <audio id="bgMusic" loop autoplay>
+      <source src="futureclub.mp3" type="audio/mpeg" />
+    </audio>
+
+    <script>
+      const bgMusic = document.getElementById("bgMusic");
+      const soundToggle = document.getElementById("soundToggle");
+
+      soundToggle.addEventListener("click", () => {
+        if (bgMusic.paused) {
+          bgMusic.play().catch(() => {});
+          soundToggle.classList.remove("muted");
+        } else {
+          bgMusic.pause();
+          soundToggle.classList.add("muted");
+        }
+      });
+
+      const gridSize = 10;
+      const mineCount = 10;
+      let timerInterval = null;
+      let timeElapsed = 0;
+      const grid = [];
+      const minesweeper = document.getElementById("minesweeper");
+      const timerDisplay = document.getElementById("timer");
+      const minesLeftDisplay = document.getElementById("mines-left");
+
+      function startTimer() {
+        timeElapsed = 0;
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+          timeElapsed++;
+          timerDisplay.textContent = timeElapsed + 's';
+        }, 1000);
+      }
+
+      function generateMinesweeper() {
+        minesweeper.innerHTML = "";
+        startTimer();
+        minesLeftDisplay.textContent = mineCount;
+
+        for (let i = 0; i < gridSize; i++) {
+          grid[i] = [];
+          for (let j = 0; j < gridSize; j++) {
+            const cell = document.createElement("div");
+            cell.classList.add("cell");
+            cell.dataset.row = i;
+            cell.dataset.col = j;
+            cell.addEventListener("click", revealCell);
+            cell.addEventListener("contextmenu", toggleFlag);
+            minesweeper.appendChild(cell);
+            grid[i][j] = {
+              mine: false,
+              revealed: false,
+              flagged: false,
+              element: cell,
+              number: 0
+            };
+          }
+        }
+
+        let placed = 0;
+        while (placed < mineCount) {
+          const row = Math.floor(Math.random() * gridSize);
+          const col = Math.floor(Math.random() * gridSize);
+          if (!grid[row][col].mine) {
+            grid[row][col].mine = true;
+            placed++;
+          }
+        }
+
+        for (let i = 0; i < gridSize; i++) {
+          for (let j = 0; j < gridSize; j++) {
+            if (!grid[i][j].mine) {
+              let count = 0;
+              for (let x = -1; x <= 1; x++) {
+                for (let y = -1; y <= 1; y++) {
+                  const ni = i + x;
+                  const nj = j + y;
+                  if (
+                    ni >= 0 && ni < gridSize &&
+                    nj >= 0 && nj < gridSize &&
+                    grid[ni][nj].mine
+                  ) {
+                    count++;
+                  }
+                }
+              }
+              grid[i][j].number = count;
+            }
+          }
+        }
+      }
+
+      function revealCell(e) {
+        e.preventDefault();
+        const row = parseInt(e.target.dataset.row);
+        const col = parseInt(e.target.dataset.col);
+        const cell = grid[row][col];
+        if (cell.revealed || cell.flagged) return;
+
+        cell.revealed = true;
+        cell.element.classList.add("reveal");
+        if (cell.mine) {
+          cell.element.classList.add("bomb");
+          clearInterval(timerInterval);
+          alert("Game Over");
+          return;
+        }
+
+        if (cell.number > 0) {
+          cell.element.textContent = cell.number;
+        } else {
+          for (let x = -1; x <= 1; x++) {
+            for (let y = -1; y <= 1; y++) {
+              const ni = row + x;
+              const nj = col + y;
+              if (
+                ni >= 0 && ni < gridSize &&
+                nj >= 0 && nj < gridSize
+              ) {
+                revealCell({ target: grid[ni][nj].element, preventDefault: () => {} });
+              }
+            }
+          }
+        }
+      }
+
+      function toggleFlag(e) {
+        e.preventDefault();
+        const row = parseInt(e.target.dataset.row);
+        const col = parseInt(e.target.dataset.col);
+        const cell = grid[row][col];
+        if (cell.revealed) return;
+
+        cell.flagged = !cell.flagged;
+        cell.element.classList.toggle("flag", cell.flagged);
+        const flaggedCount = grid.flat().filter(c => c.flagged).length;
+        minesLeftDisplay.textContent = mineCount - flaggedCount;
+      }
+
+      generateMinesweeper();
+    </script>
+  </body>
+</html>

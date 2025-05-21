@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Saper Game</title>
+
+    <!-- Open Graph Meta -->
+    <meta property="og:title" content="Saper Game" />
+    <meta property="og:description" content="Play classic Minesweeper on Farcaster!" />
+    <meta property="og:image" content="https://saper-xi.vercel.app/image.png" />
+    <meta property="og:url" content="https://saper-xi.vercel.app/" />
+
+    <!-- Farcaster Frame Embed -->
+    <meta property="fc:frame" content='{
+      "version": "vNext",
+      "imageUrl": "https://saper-xi.vercel.app/image.png",
+      "button": {
+        "title": "Play",
+        "action": {
+          "type": "launch_frame",
+          "name": "Saper Game",
+          "url": "https://saper-xi.vercel.app/game.html",
+          "splashImageUrl": "https://saper-xi.vercel.app/image.png",
+          "splashBackgroundColor": "#1e0127"
+        }
+      }
+    }' />
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #1e90ff, #8a2be2);
+        color: #ffffff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        height: 100vh;
+      }
+
+      h1 {
+        font-size: 2.5rem;
+        margin-bottom: 20px;
+      }
+
+      p {
+        font-size: 1.1rem;
+        max-width: 480px;
+        margin-bottom: 30px;
+      }
+
+      .button {
+        padding: 14px 28px;
+        font-size: 1.2rem;
+        background-color: #ffffff;
+        color: #732d91;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: bold;
+        text-decoration: none;
+        transition: background-color 0.3s;
+      }
+
+      .button:hover {
+        background-color: #f2e9ff;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Saper Game</h1>
+    <p>
+      Welcome to the Saper challenge! Uncover all safe tiles and avoid the hidden bombs.
+      Right-click to flag mines, or long-tap on mobile. Good luck!
+    </p>
+    <a class="button" href="game.html">Start Game</a>
+
+    <!-- Farcaster SDK for Frame Integration -->
+    <script src="https://cdn.jsdelivr.net/npm/@farcaster/frame-sdk/dist/index.min.js"></script>
+    <script>
+      frame.sdk.actions.ready();
+    </script>
+  </body>
+</html>

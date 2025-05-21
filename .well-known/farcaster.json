@@ -1,0 +1,19 @@
+{
+    "accountAssociation": {
+      "header": "eyJmaWQiOjgxNzA2MCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweEZCMEIzRWRhY0E5MDE1OEFGRjg1MmVGNDEzMGFDNDgyQWI5NjY1MjEifQ",
+      "payload": "eyJkb21haW4iOiJzYXBlci14aS52ZXJjZWwuYXBwIn0",
+      "signature": "MHhhNDQyMDhlZTRlM2VlNjViM2NmNmE3ZmVlZTZlNmE1ZTJkOWRmODAxMGRjNThkZmExYTA5Y2M3MzYyZjlkMGRlNDNlODM1YmE5NjNlMjcwNjUxNzlkODljNjM1NTE4ODNjNmZlNzk4MGViODZmZWZkNTgxOWIzOWIwYjhhODRlMjFj"
+    },
+    "frame": {
+      "version": "1",
+      "name": "Saper Game",
+      "iconUrl": "https://saper-xi.vercel.app/icon.png",
+      "homeUrl": "https://saper-xi.vercel.app/",
+      "imageUrl": "https://saper-xi.vercel.app/image.png",
+      "buttonTitle": "Play Minesweeper",
+      "splashImageUrl": "https://saper-xi.vercel.app/image.png",
+      "splashBackgroundColor": "#1e0127",
+      "webhookUrl": "https://saper-xi.vercel.app/api/webhook"
+    }
+  }
+  
